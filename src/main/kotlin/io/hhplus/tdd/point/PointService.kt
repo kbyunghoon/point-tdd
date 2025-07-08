@@ -11,6 +11,6 @@ class PointService(
 ) {
 
     fun getPoint(userId: Long): UserPoint {
-        TODO("포인트 조회")
+        return userPointTable.selectById(userId)
     }
 }
