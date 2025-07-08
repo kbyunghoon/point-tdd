@@ -144,4 +144,16 @@ class PointServiceTest {
         assertThat(histories[1].type).isEqualTo(TransactionType.USE)
         assertThat(histories[1].amount).isEqualTo(useAmount)
     }
+
+    @Test
+    fun `포인트 사용 - 잔고가 부족할 경우 예외 발생`() {
+        // given
+        val userId = 1L
+        val chargeAmount = 1000L
+        val useAmount = 3000L
+        pointService.charge(userId, chargeAmount)
+
+        // when & then
+        assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
+    }
 }
