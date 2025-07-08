@@ -48,6 +48,6 @@ class PointController(private val pointService: PointService) {
         @PathVariable id: Long,
         @RequestBody amount: Long,
     ): UserPoint {
-        return UserPoint(0, 0, 0)
+        return pointService.use(id, amount)
     }
 }
