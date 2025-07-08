@@ -18,7 +18,7 @@ class PointService(
     }
 
     fun charge(userId: Long, chargeAmount: Long): UserPoint {
-        require(chargeAmount > 0) { "0원 이하는 충전이 불가능합니다." }
+        require(chargeAmount > 0) { ErrorCode.INVALID_CHARGE_AMOUNT.message }
         require(chargeAmount < MAX_BALANCE) {"최대 잔고는 1,000,000,000 포인트 입니다."}
 
         val currentPoint = userPointTable.selectById(userId)
