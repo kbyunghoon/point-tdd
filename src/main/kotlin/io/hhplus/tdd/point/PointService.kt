@@ -46,7 +46,11 @@ class PointService(
 
     fun use(userId: Long, amount: Long): UserPoint {
         val currentPoint = userPointTable.selectById(userId)
+
         val newAmount = currentPoint.point - amount
+
+        require(newAmount >= 0) { "잔고가 부족합니다" }
+
         val updatedPoint = userPointTable.insertOrUpdate(
             id = userId,
             amount = newAmount
