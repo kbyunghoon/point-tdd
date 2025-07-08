@@ -20,11 +20,12 @@ class PointService(
 
     fun charge(userId: Long, chargeAmount: Long): UserPoint {
         require(chargeAmount > 0) { ErrorCode.INVALID_CHARGE_AMOUNT.message }
-        require(chargeAmount < MAX_BALANCE) { ErrorCode.EXCEED_MAX_BALANCE.message }
 
         val currentPoint = userPointTable.selectById(userId)
 
         val newAmount = currentPoint.point + chargeAmount
+
+        require(newAmount <= MAX_BALANCE) { ErrorCode.EXCEED_MAX_BALANCE.message }
 
         val updatedPoint = userPointTable.insertOrUpdate(
             id = userId,
