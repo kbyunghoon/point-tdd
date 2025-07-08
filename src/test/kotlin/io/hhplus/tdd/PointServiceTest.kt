@@ -2,9 +2,9 @@ package io.hhplus.tdd
 
 import io.hhplus.tdd.database.PointHistoryTable
 import io.hhplus.tdd.database.UserPointTable
-import io.hhplus.tdd.point.exception.ErrorCode
 import io.hhplus.tdd.point.PointService
 import io.hhplus.tdd.point.TransactionType
+import io.hhplus.tdd.point.exception.ErrorCode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -89,11 +89,32 @@ class PointServiceTest {
     fun `포인트 충전 - 최대 잔고 초과 충전 시 예외 발생`() {
         // given
         val userId = 1L
-        val chargeAmount = 100_000_000_000L
+        val currentAmount = 900_000_000L
+        val chargeAmount = 200_000_000L
+        userPointTable.insertOrUpdate(userId, currentAmount)
 
         // when & then
         val exception = assertThrows<IllegalArgumentException> { pointService.charge(userId, chargeAmount) }
         assertThat(exception.message).isEqualTo(ErrorCode.EXCEED_MAX_BALANCE.message)
+
+        // 충전 실패 시 기존 잔고 유지되는지 확인
+        val result = pointService.getPoint(userId)
+        assertThat(result.point).isEqualTo(currentAmount)
+    }
+
+    @Test
+    fun `포인트 충전 - 최대 잔고 정확히 달성하는 충전 성공되어야 함`() {
+        // given
+        val userId = 1L
+        val currentAmount = 800_000_000L
+        val chargeAmount = 200_000_000L
+        userPointTable.insertOrUpdate(userId, currentAmount)
+
+        // when
+        val result = pointService.charge(userId, chargeAmount)
+
+        // then
+        assertThat(result.point).isEqualTo(currentAmount + chargeAmount)
     }
 
     @Test
