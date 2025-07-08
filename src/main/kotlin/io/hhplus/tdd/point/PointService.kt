@@ -43,4 +43,28 @@ class PointService(
     fun getHistories(userId: Long): List<PointHistory> {
         return pointHistoryTable.selectAllByUserId(userId)
     }
+
+    fun use(userId: Long, amount: Long): UserPoint {
+        require(amount > 0) { ErrorCode.INVALID_USE_AMOUNT.message}
+
+        val currentPoint = userPointTable.selectById(userId)
+
+        val newAmount = currentPoint.point - amount
+
+        require(newAmount >= 0) { "잔고가 부족합니다" }
+
+        val updatedPoint = userPointTable.insertOrUpdate(
+            id = userId,
+            amount = newAmount
+        )
+
+        pointHistoryTable.insert(
+            id = userId,
+            amount = amount,
+            transactionType = TransactionType.USE,
+            updateMillis = updatedPoint.updateMillis,
+        )
+
+        return updatedPoint
+    }
 }

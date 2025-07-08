@@ -2,6 +2,7 @@ package io.hhplus.tdd
 
 import io.hhplus.tdd.database.PointHistoryTable
 import io.hhplus.tdd.database.UserPointTable
+import io.hhplus.tdd.point.ErrorCode
 import io.hhplus.tdd.point.PointService
 import io.hhplus.tdd.point.TransactionType
 import org.assertj.core.api.Assertions.assertThat
@@ -122,5 +123,51 @@ class PointServiceTest {
         assertThat(histories).hasSize(2)
         assertThat(histories[0].amount).isEqualTo(firstCharge)
         assertThat(histories[1].amount).isEqualTo(chargeAmount)
+    }
+
+    @Test
+    fun `포인트 사용 - 정상적으로 사용될 경우 포인트가 감소되며 내역 생성`() {
+        // given
+        val userId = 1L
+        val chargeAmount = 10000L
+        val useAmount = 3000L
+        pointService.charge(userId, chargeAmount)
+
+        // when
+        val result = pointService.use(userId, useAmount)
+
+        // then
+        assertThat(result.point).isEqualTo(chargeAmount - useAmount)
+
+        // 내역 검증
+        val histories = pointService.getHistories(userId)
+        assertThat(histories).hasSize(2)
+        assertThat(histories[1].type).isEqualTo(TransactionType.USE)
+        assertThat(histories[1].amount).isEqualTo(useAmount)
+    }
+
+    @Test
+    fun `포인트 사용 - 잔고가 부족할 경우 예외 발생`() {
+        // given
+        val userId = 1L
+        val chargeAmount = 1000L
+        val useAmount = 3000L
+        pointService.charge(userId, chargeAmount)
+
+        // when & then
+        assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
+    }
+
+    @Test
+    fun `포인트 사용 - 0원 이하 사용 시 예외 발생`() {
+        // given
+        val userId = 1L
+        val chargeAmount = 1000L
+        val useAmount = 0L
+        pointService.charge(userId, chargeAmount)
+
+        // when & then
+        val exception = assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
+        assertThat(exception.message).isEqualTo(ErrorCode.INVALID_USE_AMOUNT.message)
     }
 }
