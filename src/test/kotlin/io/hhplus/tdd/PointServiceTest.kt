@@ -3,9 +3,11 @@ package io.hhplus.tdd
 import io.hhplus.tdd.database.PointHistoryTable
 import io.hhplus.tdd.database.UserPointTable
 import io.hhplus.tdd.point.PointService
+import io.hhplus.tdd.point.TransactionType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class PointServiceTest {
 
@@ -48,5 +50,77 @@ class PointServiceTest {
         assertThat(result.id).isEqualTo(userId)
         assertThat(result.point).isEqualTo(existingPoint)
         assertThat(result.updateMillis).isGreaterThan(0L)
+    }
+
+    @Test
+    fun `포인트 충전 - 정상적으로 충전될 경우 포인트가 증가하며 내역이 생성`() {
+        // given
+        val userId = 1L
+        val chargeAmount = 10000L
+
+        // when
+        val result = pointService.charge(userId, chargeAmount)
+
+        // then
+        assertThat(result.id).isEqualTo(userId)
+        assertThat(result.point).isEqualTo(chargeAmount)
+
+        // 내역 검증
+        var histories = pointService.getHistories(userId)
+        assertThat(histories).hasSize(1)
+        assertThat(histories.first().userId).isEqualTo(userId)
+        assertThat(histories.first().type).isEqualTo(TransactionType.CHARGE)
+        assertThat(histories.first().amount).isEqualTo(chargeAmount)
+    }
+
+    @Test
+    fun `포인트 충전 - 0원 충전 시 예외 발생`() {
+        // given
+        val userId = 1L
+        val chargeAmount = 0L
+
+        // when & then
+        assertThrows<IllegalArgumentException> { pointService.charge(userId, chargeAmount) }
+    }
+
+    @Test
+    fun `포인트 충전 - 음수 충전 시 예외 발생`() {
+        // given
+        val userId = 1L
+        val chargeAmount = -10000L
+
+        // when & then
+        assertThrows<IllegalArgumentException> { pointService.charge(userId, chargeAmount) }
+    }
+
+    @Test
+    fun `포인트 충전 - 최대 잔고 초과 충전 시 예외 발생`() {
+        // given
+        val userId = 1L
+        val chargeAmount = 100_000_000_000L
+
+        // when & then
+        assertThrows<IllegalArgumentException> { pointService.charge(userId, chargeAmount) }
+    }
+
+    @Test
+    fun `포인트 충전 - 기존 포인트에서 추가 충전할 경우 포인트가 누적되어야 함`() {
+        //given
+        val userId = 1L
+        val firstCharge = 10000L
+        val chargeAmount = 20000L
+        pointService.charge(userId, firstCharge)
+
+        // when
+        val result = pointService.charge(userId, chargeAmount)
+
+        // then
+        assertThat(result.point).isEqualTo(firstCharge + chargeAmount)
+
+        // 내역 검증
+        val histories = pointService.getHistories(userId)
+        assertThat(histories).hasSize(2)
+        assertThat(histories[0].amount).isEqualTo(firstCharge)
+        assertThat(histories[1].amount).isEqualTo(chargeAmount)
     }
 }

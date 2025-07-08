@@ -13,4 +13,12 @@ class PointService(
     fun getPoint(userId: Long): UserPoint {
         return userPointTable.selectById(userId)
     }
+
+    fun charge(userId: Long, chargeAmount: Long): UserPoint {
+        TODO("구현 예정")
+    }
+
+    fun getHistories(userId: Long): List<PointHistory> {
+        TODO("구현 예정")
+    }
 }
