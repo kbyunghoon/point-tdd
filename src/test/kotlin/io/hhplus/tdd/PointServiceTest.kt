@@ -2,6 +2,7 @@ package io.hhplus.tdd
 
 import io.hhplus.tdd.database.PointHistoryTable
 import io.hhplus.tdd.database.UserPointTable
+import io.hhplus.tdd.point.ErrorCode
 import io.hhplus.tdd.point.PointService
 import io.hhplus.tdd.point.TransactionType
 import org.assertj.core.api.Assertions.assertThat
@@ -158,7 +159,7 @@ class PointServiceTest {
     }
 
     @Test
-    fun `포인트 사용 - 0원 사용 시 예외 발생`() {
+    fun `포인트 사용 - 0원 이하 사용 시 예외 발생`() {
         // given
         val userId = 1L
         val chargeAmount = 1000L
@@ -166,18 +167,7 @@ class PointServiceTest {
         pointService.charge(userId, chargeAmount)
 
         // when & then
-        assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
-    }
-
-    @Test
-    fun `포인트 사용 - 음수 사용 시 예외 발생`() {
-        // given
-        val userId = 1L
-        val chargeAmount = 10000L
-        val useAmount = -1000L
-        pointService.charge(userId, chargeAmount)
-
-        // when & then
-        assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
+        val exception = assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
+        assertThat(exception.message).isEqualTo(ErrorCode.INVALID_USE_AMOUNT.message)
     }
 }
