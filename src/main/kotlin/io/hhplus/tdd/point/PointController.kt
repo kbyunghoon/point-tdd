@@ -26,7 +26,7 @@ class PointController(private val pointService: PointService) {
     fun history(
         @PathVariable id: Long,
     ): List<PointHistory> {
-        return emptyList()
+        return pointService.getHistories(id)
     }
 
     /**
@@ -37,7 +37,7 @@ class PointController(private val pointService: PointService) {
         @PathVariable id: Long,
         @RequestBody amount: Long,
     ): UserPoint {
-        return UserPoint(0, 0, 0)
+        return pointService.charge(id, amount)
     }
 
     /**
