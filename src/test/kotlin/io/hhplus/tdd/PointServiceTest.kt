@@ -92,7 +92,8 @@ class PointServiceTest {
         val chargeAmount = 100_000_000_000L
 
         // when & then
-        assertThrows<IllegalArgumentException> { pointService.charge(userId, chargeAmount) }
+        val exception = assertThrows<IllegalArgumentException> { pointService.charge(userId, chargeAmount) }
+        assertThat(exception.message).isEqualTo(ErrorCode.EXCEED_MAX_BALANCE.message)
     }
 
     @Test
