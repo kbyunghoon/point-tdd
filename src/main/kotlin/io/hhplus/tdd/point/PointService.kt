@@ -45,6 +45,20 @@ class PointService(
     }
 
     fun use(userId: Long, amount: Long): UserPoint {
-        TODO("구현 예정")
+        val currentPoint = userPointTable.selectById(userId)
+        val newAmount = currentPoint.point - amount
+        val updatedPoint = userPointTable.insertOrUpdate(
+            id = userId,
+            amount = newAmount
+        )
+
+        pointHistoryTable.insert(
+            id = userId,
+            amount = amount,
+            transactionType = TransactionType.USE,
+            updateMillis = updatedPoint.updateMillis,
+        )
+
+        return updatedPoint
     }
 }
