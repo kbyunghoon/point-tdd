@@ -1,4 +1,4 @@
-package io.hhplus.tdd.point
+package io.hhplus.tdd.point.exception
 
 enum class ErrorCode(val message: String) {
     INVALID_CHARGE_AMOUNT("충전 금액은 1원 이상이어야 합니다"),

@@ -2,6 +2,7 @@ package io.hhplus.tdd.point
 
 import io.hhplus.tdd.database.PointHistoryTable
 import io.hhplus.tdd.database.UserPointTable
+import io.hhplus.tdd.point.exception.ErrorCode
 import org.springframework.stereotype.Service
 
 @Service
@@ -45,13 +46,13 @@ class PointService(
     }
 
     fun use(userId: Long, amount: Long): UserPoint {
-        require(amount > 0) { ErrorCode.INVALID_USE_AMOUNT.message }
+        validateAmount(amount, ErrorCode.INVALID_USE_AMOUNT)
 
         val currentPoint = userPointTable.selectById(userId)
 
         val newAmount = currentPoint.point - amount
 
-        require(newAmount >= 0) { "잔고가 부족합니다" }
+        require(newAmount >= 0) { ErrorCode.INSUFFICIENT_BALANCE.message }
 
         val updatedPoint = userPointTable.insertOrUpdate(
             id = userId,
@@ -66,5 +67,9 @@ class PointService(
         )
 
         return updatedPoint
+    }
+
+    private fun validateAmount(amount: Long, errorCode: ErrorCode) {
+        require(amount > 0) { errorCode.message }
     }
 }
