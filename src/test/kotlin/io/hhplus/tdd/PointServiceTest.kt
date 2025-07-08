@@ -156,4 +156,16 @@ class PointServiceTest {
         // when & then
         assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
     }
+
+    @Test
+    fun `포인트 사용 - 0원 사용 시 예외 발생`() {
+        // given
+        val userId = 1L
+        val chargeAmount = 1000L
+        val useAmount = 0L
+        pointService.charge(userId, chargeAmount)
+
+        // when & then
+        assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
+    }
 }
