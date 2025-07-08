@@ -43,4 +43,8 @@ class PointService(
     fun getHistories(userId: Long): List<PointHistory> {
         return pointHistoryTable.selectAllByUserId(userId)
     }
+
+    fun use(userId: Long, amount: Long): UserPoint {
+        TODO("구현 예정")
+    }
 }

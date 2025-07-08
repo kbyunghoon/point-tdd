@@ -123,4 +123,25 @@ class PointServiceTest {
         assertThat(histories[0].amount).isEqualTo(firstCharge)
         assertThat(histories[1].amount).isEqualTo(chargeAmount)
     }
+
+    @Test
+    fun `포인트 사용 - 정상적으로 사용될 경우 포인트가 감소되며 내역 생성`() {
+        // given
+        val userId = 1L
+        val chargeAmount = 10000L
+        val useAmount = 3000L
+        pointService.charge(userId, chargeAmount)
+
+        // when
+        val result = pointService.use(userId, useAmount)
+
+        // then
+        assertThat(result.point).isEqualTo(chargeAmount - useAmount)
+
+        // 내역 검증
+        val histories = pointService.getHistories(userId)
+        assertThat(histories).hasSize(2)
+        assertThat(histories[1].type).isEqualTo(TransactionType.USE)
+        assertThat(histories[1].amount).isEqualTo(useAmount)
+    }
 }
