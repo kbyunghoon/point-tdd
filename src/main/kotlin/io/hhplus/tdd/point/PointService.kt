@@ -45,6 +45,8 @@ class PointService(
     }
 
     fun use(userId: Long, amount: Long): UserPoint {
+        require(amount > 0) {"포인트는 1원 이상부터 사용 가능합니다."}
+
         val currentPoint = userPointTable.selectById(userId)
 
         val newAmount = currentPoint.point - amount
