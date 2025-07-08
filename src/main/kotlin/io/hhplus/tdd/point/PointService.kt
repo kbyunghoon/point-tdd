@@ -52,7 +52,7 @@ class PointService(
 
         val newAmount = currentPoint.point - amount
 
-        require(newAmount >= 0) { "잔고가 부족합니다" }
+        require(newAmount >= 0) { ErrorCode.INSUFFICIENT_BALANCE.message }
 
         val updatedPoint = userPointTable.insertOrUpdate(
             id = userId,
