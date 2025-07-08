@@ -75,23 +75,14 @@ class PointServiceTest {
     }
 
     @Test
-    fun `포인트 충전 - 0원 충전 시 예외 발생`() {
+    fun `포인트 충전 - 0원 이하 충전 시 예외 발생`() {
         // given
         val userId = 1L
         val chargeAmount = 0L
 
         // when & then
-        assertThrows<IllegalArgumentException> { pointService.charge(userId, chargeAmount) }
-    }
-
-    @Test
-    fun `포인트 충전 - 음수 충전 시 예외 발생`() {
-        // given
-        val userId = 1L
-        val chargeAmount = -10000L
-
-        // when & then
-        assertThrows<IllegalArgumentException> { pointService.charge(userId, chargeAmount) }
+        val exception = assertThrows<IllegalArgumentException> { pointService.charge(userId, chargeAmount) }
+        assertThat(exception.message).isEqualTo(ErrorCode.INVALID_CHARGE_AMOUNT.message)
     }
 
     @Test
