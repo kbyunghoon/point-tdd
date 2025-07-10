@@ -1,76 +1,33 @@
 package io.hhplus.tdd.point
 
-import io.hhplus.tdd.database.PointHistoryTable
-import io.hhplus.tdd.database.UserPointTable
-import io.hhplus.tdd.point.exception.ErrorCode
-import org.springframework.stereotype.Service
+interface PointService {
+    /**
+     * 유저 포인트 조회
+     * @param userId 조회할 유저 ID
+     * @return 유저의 포인트 정보
+     */
+    fun getPoint(userId: Long): UserPoint
 
-@Service
-class PointService(
-    private val userPointTable: UserPointTable,
-    private val pointHistoryTable: PointHistoryTable
-) {
-    companion object {
-        const val MAX_BALANCE = 1_000_000_000L
-    }
+    /**
+     * 유저 포인트 충전
+     * @param userId 충전할 유저 ID
+     * @param chargeAmount 충전할 포인트 양
+     * @return 충전 후 유저의 포인트 정보
+     */
+    fun charge(userId: Long, chargeAmount: Long): UserPoint
 
-    fun getPoint(userId: Long): UserPoint {
-        return userPointTable.selectById(userId)
-    }
+    /**
+     * 유저 포인트 사용
+     * @param userId 사용할 유저 ID
+     * @param amount 사용할 포인트 양
+     * @return 사용 후 유저의 포인트 정보
+     */
+    fun use(userId: Long, amount: Long): UserPoint
 
-    fun charge(userId: Long, chargeAmount: Long): UserPoint {
-        require(chargeAmount > 0) { ErrorCode.INVALID_CHARGE_AMOUNT.message }
-
-        val currentPoint = userPointTable.selectById(userId)
-
-        val newAmount = currentPoint.point + chargeAmount
-
-        require(newAmount <= MAX_BALANCE) { ErrorCode.EXCEED_MAX_BALANCE.message }
-
-        val updatedPoint = userPointTable.insertOrUpdate(
-            id = userId,
-            amount = newAmount,
-        )
-
-        pointHistoryTable.insert(
-            id = userId,
-            amount = chargeAmount,
-            transactionType = TransactionType.CHARGE,
-            updateMillis = updatedPoint.updateMillis,
-        )
-
-        return updatedPoint
-    }
-
-    fun getHistories(userId: Long): List<PointHistory> {
-        return pointHistoryTable.selectAllByUserId(userId)
-    }
-
-    fun use(userId: Long, amount: Long): UserPoint {
-        validateAmount(amount, ErrorCode.INVALID_USE_AMOUNT)
-
-        val currentPoint = userPointTable.selectById(userId)
-
-        val newAmount = currentPoint.point - amount
-
-        require(newAmount >= 0) { ErrorCode.INSUFFICIENT_BALANCE.message }
-
-        val updatedPoint = userPointTable.insertOrUpdate(
-            id = userId,
-            amount = newAmount
-        )
-
-        pointHistoryTable.insert(
-            id = userId,
-            amount = amount,
-            transactionType = TransactionType.USE,
-            updateMillis = updatedPoint.updateMillis,
-        )
-
-        return updatedPoint
-    }
-
-    private fun validateAmount(amount: Long, errorCode: ErrorCode) {
-        require(amount > 0) { errorCode.message }
-    }
+    /**
+     * 유저 포인트 사용/충전 내역 조회
+     * @param userId 조회할 유저 ID
+     * @return 포인트 사용/충전 내역 리스트
+     */
+    fun getHistories(userId: Long): List<PointHistory>
 }
