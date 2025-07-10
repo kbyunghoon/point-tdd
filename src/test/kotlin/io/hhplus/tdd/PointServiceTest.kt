@@ -3,6 +3,7 @@ package io.hhplus.tdd
 import io.hhplus.tdd.database.PointHistoryTable
 import io.hhplus.tdd.database.UserPointTable
 import io.hhplus.tdd.point.PointService
+import io.hhplus.tdd.point.PointServiceImpl
 import io.hhplus.tdd.point.TransactionType
 import io.hhplus.tdd.point.exception.ErrorCode
 import org.assertj.core.api.Assertions.assertThat
@@ -20,7 +21,7 @@ class PointServiceTest {
     fun setup() {
         userPointTable = UserPointTable()
         pointHistoryTable = PointHistoryTable()
-        pointService = PointService(userPointTable, pointHistoryTable)
+        pointService = PointServiceImpl(userPointTable, pointHistoryTable)
     }
 
     @Test
@@ -67,7 +68,7 @@ class PointServiceTest {
         assertThat(result.point).isEqualTo(chargeAmount)
 
         // 내역 검증
-        var histories = pointService.getHistories(userId)
+        val histories = pointService.getHistories(userId)
         assertThat(histories).hasSize(1)
         assertThat(histories.first().userId).isEqualTo(userId)
         assertThat(histories.first().type).isEqualTo(TransactionType.CHARGE)
@@ -150,11 +151,13 @@ class PointServiceTest {
         val result = pointService.use(userId, useAmount)
 
         // then
+        assertThat(result.id).isEqualTo(userId)
         assertThat(result.point).isEqualTo(chargeAmount - useAmount)
 
         // 내역 검증
         val histories = pointService.getHistories(userId)
         assertThat(histories).hasSize(2)
+        assertThat(histories[1].userId).isEqualTo(userId)
         assertThat(histories[1].type).isEqualTo(TransactionType.USE)
         assertThat(histories[1].amount).isEqualTo(useAmount)
     }
@@ -168,7 +171,8 @@ class PointServiceTest {
         pointService.charge(userId, chargeAmount)
 
         // when & then
-        assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
+        val exception = assertThrows<IllegalArgumentException> { pointService.use(userId, useAmount) }
+        assertThat(exception.message).isEqualTo(ErrorCode.INSUFFICIENT_BALANCE.message)
     }
 
     @Test
